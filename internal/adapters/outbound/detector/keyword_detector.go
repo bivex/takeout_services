@@ -3,6 +3,7 @@ package detector
 import (
 	"context"
 	"fmt"
+	"net/mail"
 	"strings"
 
 	"takeout_services/internal/domain/model"
@@ -55,7 +56,7 @@ func (d *KeywordDetector) Detect(ctx context.Context, emails []*model.Email) ([]
 	}
 
 	for _, email := range emails {
-		senderDomain := extractDomain(email.From)
+		displayName, senderDomain := parseFromHeader(email.From)
 		if senderDomain == "" {
 			continue
 		}
@@ -63,6 +64,21 @@ func (d *KeywordDetector) Detect(ctx context.Context, emails []*model.Email) ([]
 		baseDomain := getBaseDomain(senderDomain)
 		if baseDomain == "" {
 			continue
+		}
+
+		// Handle payment gateways or email transactional services (e.g. stripe.com)
+		// Stripe emails sent on behalf of other companies have the display name of that company
+		if baseDomain == "stripe.com" && displayName != "" {
+			// Infer domain from display name
+			inferredDomain := strings.ToLower(displayName)
+			inferredDomain = strings.ReplaceAll(inferredDomain, " ", "")
+			inferredDomain = strings.TrimSuffix(inferredDomain, ".com")
+			inferredDomain = strings.TrimSuffix(inferredDomain, ",inc")
+			inferredDomain = strings.TrimSuffix(inferredDomain, ",inc.")
+			inferredDomain = inferredDomain + ".com" // Default to .com
+
+			// Override baseDomain
+			baseDomain = inferredDomain
 		}
 
 		// Skip common personal email providers from being detected as unique services
@@ -165,23 +181,39 @@ func (d *KeywordDetector) Detect(ctx context.Context, emails []*model.Email) ([]
 	return results, nil
 }
 
-func extractDomain(fromStr string) string {
+func parseFromHeader(fromStr string) (string, string) {
 	fromStr = strings.TrimSpace(fromStr)
 	if fromStr == "" {
-		return ""
+		return "", ""
 	}
-	idx := strings.Index(fromStr, "<")
-	if idx != -1 {
-		endIdx := strings.Index(fromStr[idx:], ">")
-		if endIdx != -1 {
-			fromStr = fromStr[idx+1 : idx+endIdx]
+	addr, err := mail.ParseAddress(fromStr)
+	if err != nil {
+		// Fallback to manual extraction
+		idx := strings.Index(fromStr, "<")
+		if idx != -1 {
+			endIdx := strings.Index(fromStr[idx:], ">")
+			if endIdx != -1 {
+				email := fromStr[idx+1 : idx+endIdx]
+				atIdx := strings.Index(email, "@")
+				if atIdx != -1 {
+					return "", strings.ToLower(strings.TrimSpace(email[atIdx+1:]))
+				}
+			}
 		}
+		atIdx := strings.Index(fromStr, "@")
+		if atIdx != -1 {
+			return "", strings.ToLower(strings.TrimSpace(fromStr[atIdx+1:]))
+		}
+		return "", strings.ToLower(fromStr)
 	}
-	atIdx := strings.Index(fromStr, "@")
-	if atIdx != -1 {
-		return strings.ToLower(strings.TrimSpace(fromStr[atIdx+1:]))
+
+	parts := strings.Split(addr.Address, "@")
+	domain := ""
+	if len(parts) > 1 {
+		domain = strings.ToLower(strings.TrimSpace(parts[1]))
 	}
-	return strings.ToLower(strings.TrimSpace(fromStr))
+	displayName := strings.Trim(strings.TrimSpace(addr.Name), `"'`)
+	return displayName, domain
 }
 
 func getBaseDomain(domain string) string {
@@ -237,3 +269,4 @@ func capitalizeDomain(domain string) string {
 	}
 	return domain
 }
+
