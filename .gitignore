@@ -1,3 +1,4 @@
 Takeout/Почта/Вся почта, включая _Спам_ и _Корзину_.mbox
 emails.jsonl
 takeout-parser
+*.pprof
