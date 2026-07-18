@@ -2,3 +2,5 @@ Takeout/Почта/Вся почта, включая _Спам_ и _Корзин
 emails.jsonl
 takeout-parser
 *.pprof
+footprint.json
+report.html
