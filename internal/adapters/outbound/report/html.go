@@ -1491,6 +1491,51 @@ const htmlTemplate = `<!DOCTYPE html>
 			}
 		};
 
+		// Show email IDs under the domain name on each card
+		cards.forEach(card => {
+			const identity = card.querySelector('.service-identity');
+			if (!identity) return;
+			
+			const lis = card.querySelectorAll('.subjects-list li');
+			const ids = [];
+			lis.forEach(li => {
+				const text = li.textContent.trim();
+				const match = text.match(/^\[ID:\s*([a-f0-9]+)\]/i);
+				if (match) {
+					ids.push(match[1]);
+				}
+			});
+			
+			if (ids.length > 0) {
+				const idsContainer = document.createElement('div');
+				idsContainer.className = 'service-email-ids';
+				idsContainer.style.marginTop = '0.25rem';
+				idsContainer.style.fontSize = '0.72rem';
+				idsContainer.style.color = 'var(--text-muted)';
+				
+				let html = 'IDs: ';
+				ids.forEach((id, idx) => {
+					html += '<span class="copy-id-badge" style="margin-right: 0.2rem; margin-top: 0.1rem;" onclick="navigator.clipboard.writeText(\'' + id + '\'); alert(\'Copied ID: ' + id + '\')" title="Click to copy full email ID for CLI reader">' + id + '</span>';
+					if (idx < ids.length - 1 && idx < 2) {
+						html += ', ';
+					}
+				});
+				
+				// Check if there are more emails in total
+				const totalEmailsBadge = card.querySelector('.badge.count');
+				const totalEmailsText = totalEmailsBadge ? totalEmailsBadge.textContent.trim() : '';
+				const totalCountMatch = totalEmailsText.match(/^(\d+)/);
+				const totalCount = totalCountMatch ? parseInt(totalCountMatch[1]) : ids.length;
+				
+				if (totalCount > ids.length) {
+					html += '...';
+				}
+				
+				idsContainer.innerHTML = html;
+				identity.appendChild(idsContainer);
+			}
+		});
+
 		// Enhance subjects list with clickable copyable IDs
 		document.querySelectorAll('.subjects-list li').forEach(li => {
 			const text = li.textContent.trim();
