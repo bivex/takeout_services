@@ -470,6 +470,82 @@ const htmlTemplate = `<!DOCTYPE html>
 			margin-bottom: 0;
 		}
 
+		/* Custom Checkbox Styling */
+		.deleted-checkbox-wrapper {
+			display: inline-block;
+			position: relative;
+			width: 1.3rem;
+			height: 1.3rem;
+			margin-top: 0.15rem;
+			cursor: pointer;
+			user-select: none;
+		}
+
+		.deleted-checkbox-wrapper input {
+			position: absolute;
+			opacity: 0;
+			cursor: pointer;
+			height: 0;
+			width: 0;
+		}
+
+		.checkmark {
+			position: absolute;
+			top: 0;
+			left: 0;
+			height: 1.3rem;
+			width: 1.3rem;
+			background-color: var(--panel-dark);
+			border: 2px solid var(--border);
+			border-radius: 0.35rem;
+			transition: all 0.2s;
+		}
+
+		.deleted-checkbox-wrapper:hover input ~ .checkmark {
+			border-color: var(--accent);
+		}
+
+		.deleted-checkbox-wrapper input:checked ~ .checkmark {
+			background-color: var(--accent);
+			border-color: var(--accent);
+		}
+
+		.checkmark:after {
+			content: "";
+			position: absolute;
+			display: none;
+		}
+
+		.deleted-checkbox-wrapper input:checked ~ .checkmark:after {
+			display: block;
+		}
+
+		.deleted-checkbox-wrapper .checkmark:after {
+			left: 5px;
+			top: 1px;
+			width: 4px;
+			height: 8px;
+			border: solid #ffffff;
+			border-width: 0 2px 2px 0;
+			transform: rotate(45deg);
+		}
+
+		/* Deleted Card Styling */
+		.service-card.deleted-card {
+			opacity: 0.45;
+			border-color: var(--border) !important;
+			box-shadow: none !important;
+			transform: none !important;
+		}
+
+		.service-card.deleted-card .delete-action {
+			background-color: var(--border) !important;
+			color: var(--text-muted) !important;
+			border-color: var(--border) !important;
+			cursor: not-allowed;
+			pointer-events: none;
+		}
+
 		/* Delete Button */
 		.delete-action {
 			display: inline-flex;
@@ -548,6 +624,13 @@ const htmlTemplate = `<!DOCTYPE html>
 				</div>
 				<div class="stat-icon">💳</div>
 			</div>
+			<div class="stat-card">
+				<div class="stat-info">
+					<h2>Deleted Accounts</h2>
+					<div class="stat-value" id="deletedStatVal" style="color: #10b981;">0 / {{.Stats.Total}}</div>
+				</div>
+				<div class="stat-icon">✅</div>
+			</div>
 		</section>
 
 		<!-- Filter and Search controls -->
@@ -572,9 +655,15 @@ const htmlTemplate = `<!DOCTYPE html>
 					 data-confidence="{{.Confidence}}"
 					 data-receipt="{{.HasReceipt}}">
 				<div class="card-header">
-					<div class="service-identity">
-						<h3>{{.Name}}</h3>
-						<div class="service-domain">{{.Domain}}</div>
+					<div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+						<label class="deleted-checkbox-wrapper" title="Mark account as deleted">
+							<input type="checkbox" class="deleted-checkbox" onchange="toggleDeleted(this, '{{.Domain}}')">
+							<span class="checkmark"></span>
+						</label>
+						<div class="service-identity">
+							<h3>{{.Name}}</h3>
+							<div class="service-domain">{{.Domain}}</div>
+						</div>
 					</div>
 					<div class="confidence-badge {{if ge .Confidence 7}}conf-high{{else if ge .Confidence 4}}conf-mid{{else}}conf-low{{end}}">
 						Score: {{.Confidence}}/10
@@ -700,6 +789,49 @@ const htmlTemplate = `<!DOCTYPE html>
 			themeToggleIcon.textContent = isDark ? '☀️' : '🌙';
 			themeToggleText.textContent = isDark ? 'Light Mode' : 'Dark Mode';
 		});
+
+		// Deleted Accounts persistence logic
+		const deletedStatVal = document.getElementById('deletedStatVal');
+
+		function updateDeletedStats() {
+			const totalCards = cards.length;
+			let deletedCount = 0;
+			cards.forEach(card => {
+				const domain = card.getAttribute('data-domain');
+				let isDeleted = false;
+				try {
+					isDeleted = localStorage.getItem('deleted-service-' + domain) === 'true';
+				} catch (e) {
+					// ignore
+				}
+				const checkbox = card.querySelector('.deleted-checkbox');
+				
+				if (isDeleted) {
+					card.classList.add('deleted-card');
+					if (checkbox) checkbox.checked = true;
+					deletedCount++;
+				} else {
+					card.classList.remove('deleted-card');
+					if (checkbox) checkbox.checked = false;
+				}
+			});
+
+			if (deletedStatVal) {
+				deletedStatVal.textContent = deletedCount + ' / ' + totalCards;
+			}
+		}
+
+		window.toggleDeleted = function(checkbox, domain) {
+			try {
+				localStorage.setItem('deleted-service-' + domain, checkbox.checked ? 'true' : 'false');
+			} catch (e) {
+				// ignore
+			}
+			updateDeletedStats();
+		};
+
+		// Initial load of stats
+		updateDeletedStats();
 	</script>
 </body>
 </html>
