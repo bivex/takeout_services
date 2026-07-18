@@ -127,4 +127,16 @@ Then navigate to [http://localhost:8000/](http://localhost:8000/) in your browse
 - `--serve`: Starts the local Go web server instead of running analysis.
 - `--port`: The port to run the web server on (defaults to `8000`).
 
+### 6. Read Email Details (CLI Reader Mode)
+Look up and read the headers, subject, and body of any parsed email by its index or ID directly in your terminal:
+```bash
+# Read email by its 0-based index
+./takeout-parser --read-email 5
+
+# Read email by its SHA256 ID hash or Message-ID
+./takeout-parser --read-email 9e0fe7b...
+```
+- `--read-email`: Read the subject and body of an email by its index or ID/MsgID from the emails JSONL database.
+- `--output`: Path to the emails JSONL database file to read (defaults to `emails.jsonl`).
+
 
