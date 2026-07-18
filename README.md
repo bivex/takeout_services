@@ -117,10 +117,14 @@ Analyze your email history to identify all registered services and generate a de
 - `--report-json`: Path to write the structured JSON dataset of detected services (defaults to `footprint.json`).
 - `--cpuprofile` / `--memprofile`: Generates CPU and memory pprof profile dumps for profiling.
 
-### 5. Serve HTML Dashboard
-Start a local web server to view the report dashboard:
+### 5. Serve HTML Dashboard & Sync State
+Start the built-in Go web server to view the report dashboard and sync your deletion progress to disk:
 ```bash
-python3 -m http.server 8000
+./takeout-parser --serve --port 8000
 ```
-Then navigate to [http://localhost:8000/report.html](http://localhost:8000/report.html) in your browser.
+Then navigate to [http://localhost:8000/](http://localhost:8000/) in your browser.
+
+- `--serve`: Starts the local Go web server instead of running analysis.
+- `--port`: The port to run the web server on (defaults to `8000`).
+
 
