@@ -65,12 +65,19 @@ graph TD
 
 - [cmd/cli/main.go](file:///Volumes/External/Code/takeout_services/cmd/cli/main.go): The entry point for the CLI. Sets up dependencies and coordinates the use case execution.
 - [internal/domain/model/email.go](file:///Volumes/External/Code/takeout_services/internal/domain/model/email.go): The core Domain Entity `Email`.
+- [internal/domain/model/service.go](file:///Volumes/External/Code/takeout_services/internal/domain/model/service.go): The core Domain Entity `DetectedService`.
 - [internal/domain/errors.go](file:///Volumes/External/Code/takeout_services/internal/domain/errors.go): Domain-specific error definitions.
 - [internal/ports/inbound/import_emails.go](file:///Volumes/External/Code/takeout_services/internal/ports/inbound/import_emails.go): Driving port interface (`ImportEmailsUseCase`).
+- [internal/ports/inbound/detect_footprint.go](file:///Volumes/External/Code/takeout_services/internal/ports/inbound/detect_footprint.go): Driving port interface (`DetectFootprintUseCase`).
 - [internal/ports/outbound/email_repo.go](file:///Volumes/External/Code/takeout_services/internal/ports/outbound/email_repo.go): Driven port interface (`EmailRepository`).
 - [internal/ports/outbound/mbox_parser.go](file:///Volumes/External/Code/takeout_services/internal/ports/outbound/mbox_parser.go): Driven port interface (`MboxParser`).
+- [internal/ports/outbound/service_detector.go](file:///Volumes/External/Code/takeout_services/internal/ports/outbound/service_detector.go): Driven port interface (`ServiceDetector`).
 - [internal/application/services/email_importer.go](file:///Volumes/External/Code/takeout_services/internal/application/services/email_importer.go): Application Service coordinating parser and repo ports.
+- [internal/application/services/footprint_analyzer.go](file:///Volumes/External/Code/takeout_services/internal/application/services/footprint_analyzer.go): Application Service coordinating parser and footprint detector.
 - [internal/adapters/outbound/mbox/parser.go](file:///Volumes/External/Code/takeout_services/internal/adapters/outbound/mbox/parser.go): Mbox parser implementation. Supports MIME multipart, Base64/Quoted-Printable decoding, header decodings, and attachment parsing.
+- [internal/adapters/outbound/detector/keyword_detector.go](file:///Volumes/External/Code/takeout_services/internal/adapters/outbound/detector/keyword_detector.go): Service detector implementation analyzing email subjects and bodies for welcome/reset/payment cues.
+- [internal/adapters/outbound/detector/known_services.go](file:///Volumes/External/Code/takeout_services/internal/adapters/outbound/detector/known_services.go): Database mapping domains to known service names and official account deletion URLs.
+- [internal/adapters/outbound/report/html.go](file:///Volumes/External/Code/takeout_services/internal/adapters/outbound/report/html.go): Generates the interactive, dark-themed HTML dashboard report.
 - [internal/adapters/outbound/repository/repository.go](file:///Volumes/External/Code/takeout_services/internal/adapters/outbound/repository/repository.go): In-memory and JSON Lines output file adapters.
 
 ---
@@ -89,8 +96,8 @@ Build the executable binary:
 go build -o takeout-parser ./cmd/cli
 ```
 
-### 3. Parse Google Takeout Mail
-Run the compiled binary by passing your input `.mbox` file:
+### 3. Parse Google Takeout Mail (Raw Mode)
+Export raw email objects sequentially to a JSON Lines file:
 ```bash
 ./takeout-parser --input "Takeout/Почта/Вся почта, включая _Спам_ и _Корзину_.mbox" --output emails.jsonl
 ```
@@ -98,3 +105,14 @@ Run the compiled binary by passing your input `.mbox` file:
 - `--input`: Path to the input `.mbox` file.
 - `--output`: Path to write the output JSON Lines file (defaults to `emails.jsonl`).
 - `--verbose`: Enable/disable stdout progress logs (defaults to `true`).
+
+### 4. Detect Digital Footprint (Detector Mode)
+Analyze your email history to identify all registered services and generate a deletion dashboard:
+```bash
+./takeout-parser --input "Takeout/Почта/Вся почта, включая _Спам_ и _Корзину_.mbox" --detect --report-html report.html --report-json footprint.json
+```
+
+- `--detect`: Runs the digital footprint analyzer instead of raw email parser.
+- `--report-html`: Path to write the visual HTML dashboard (defaults to `report.html`).
+- `--report-json`: Path to write the structured JSON dataset of detected services (defaults to `footprint.json`).
+- `--cpuprofile` / `--memprofile`: Generates CPU and memory pprof profile dumps for profiling.
