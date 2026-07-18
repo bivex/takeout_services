@@ -69,52 +69,6 @@ const htmlTemplate = `<!DOCTYPE html>
 	<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 	<style>
 		:root {
-			--bg-dark: #1B0C0C;
-			--panel-dark: #2E1615;
-			--accent: #90DD55;
-			--accent-glow: rgba(144, 221, 85, 0.15);
-			--text-main: #F2E4E3;
-			--text-muted: #C8A679;
-			--border: rgba(200, 166, 121, 0.15);
-
-			--welcome-color: #90DD55;
-			--welcome-bg: rgba(144, 221, 85, 0.1);
-			--welcome-border: rgba(144, 221, 85, 0.2);
-
-			--reset-color: #C8A679;
-			--reset-bg: rgba(200, 166, 121, 0.1);
-			--reset-border: rgba(200, 166, 121, 0.2);
-
-			--receipt-color: #F2E4E3;
-			--receipt-bg: rgba(242, 228, 227, 0.1);
-			--receipt-border: rgba(242, 228, 227, 0.2);
-
-			--unclassified-bg: rgba(242, 228, 227, 0.05);
-			--unclassified-border: rgba(242, 228, 227, 0.15);
-
-			--count-bg: rgba(200, 166, 121, 0.1);
-			--count-border: rgba(200, 166, 121, 0.2);
-
-			--conf-high-color: #90DD55;
-			--conf-high-bg: rgba(144, 221, 85, 0.15);
-			--conf-high-border: rgba(144, 221, 85, 0.3);
-
-			--conf-mid-color: #C8A679;
-			--conf-mid-bg: rgba(200, 166, 121, 0.15);
-			--conf-mid-border: rgba(200, 166, 121, 0.3);
-
-			--conf-low-color: #F2E4E3;
-			--conf-low-bg: rgba(242, 228, 227, 0.1);
-			--conf-low-border: rgba(242, 228, 227, 0.2);
-
-			--delete-btn-bg: rgba(239, 68, 68, 0.1);
-			--delete-btn-text: #ef4444;
-			--delete-btn-border: rgba(239, 68, 68, 0.2);
-			--delete-btn-hover-bg: #ef4444;
-			--delete-btn-hover-border: #ef4444;
-		}
-
-		body.light-mode {
 			--bg-dark: #F8FAFC;
 			--panel-dark: #FFFFFF;
 			--accent: #0284C7;
@@ -160,14 +114,60 @@ const htmlTemplate = `<!DOCTYPE html>
 			--delete-btn-hover-border: #DC2626;
 		}
 
-		body.light-mode h1 {
-			background: linear-gradient(135deg, #0F172A, #0284C7, #64748B);
+		body.dark-mode {
+			--bg-dark: #1B0C0C;
+			--panel-dark: #2E1615;
+			--accent: #90DD55;
+			--accent-glow: rgba(144, 221, 85, 0.15);
+			--text-main: #F2E4E3;
+			--text-muted: #C8A679;
+			--border: rgba(200, 166, 121, 0.15);
+
+			--welcome-color: #90DD55;
+			--welcome-bg: rgba(144, 221, 85, 0.1);
+			--welcome-border: rgba(144, 221, 85, 0.2);
+
+			--reset-color: #C8A679;
+			--reset-bg: rgba(200, 166, 121, 0.1);
+			--reset-border: rgba(200, 166, 121, 0.2);
+
+			--receipt-color: #F2E4E3;
+			--receipt-bg: rgba(242, 228, 227, 0.1);
+			--receipt-border: rgba(242, 228, 227, 0.2);
+
+			--unclassified-bg: rgba(242, 228, 227, 0.05);
+			--unclassified-border: rgba(242, 228, 227, 0.15);
+
+			--count-bg: rgba(200, 166, 121, 0.1);
+			--count-border: rgba(200, 166, 121, 0.2);
+
+			--conf-high-color: #90DD55;
+			--conf-high-bg: rgba(144, 221, 85, 0.15);
+			--conf-high-border: rgba(144, 221, 85, 0.3);
+
+			--conf-mid-color: #C8A679;
+			--conf-mid-bg: rgba(200, 166, 121, 0.15);
+			--conf-mid-border: rgba(200, 166, 121, 0.3);
+
+			--conf-low-color: #F2E4E3;
+			--conf-low-bg: rgba(242, 228, 227, 0.1);
+			--conf-low-border: rgba(242, 228, 227, 0.2);
+
+			--delete-btn-bg: rgba(239, 68, 68, 0.1);
+			--delete-btn-text: #ef4444;
+			--delete-btn-border: rgba(239, 68, 68, 0.2);
+			--delete-btn-hover-bg: #ef4444;
+			--delete-btn-hover-border: #ef4444;
+		}
+
+		body.dark-mode h1 {
+			background: linear-gradient(135deg, #F2E4E3, #90DD55, #C8A679);
 			-webkit-background-clip: text;
 			-webkit-text-fill-color: transparent;
 		}
 
-		body.light-mode .stat-icon {
-			opacity: 0.12;
+		body.dark-mode .stat-icon {
+			opacity: 0.25;
 		}
 
 		.theme-toggle-wrapper {
@@ -214,7 +214,7 @@ const htmlTemplate = `<!DOCTYPE html>
 		h1 {
 			font-size: 2.5rem;
 			font-weight: 700;
-			background: linear-gradient(135deg, #F2E4E3, #90DD55, #C8A679);
+			background: linear-gradient(135deg, #0F172A, #0284C7, #64748B);
 			-webkit-background-clip: text;
 			-webkit-text-fill-color: transparent;
 			margin-bottom: 0.5rem;
@@ -267,7 +267,7 @@ const htmlTemplate = `<!DOCTYPE html>
 
 		.stat-icon {
 			font-size: 2.5rem;
-			opacity: 0.25;
+			opacity: 0.12;
 			color: var(--accent);
 		}
 
@@ -516,7 +516,7 @@ const htmlTemplate = `<!DOCTYPE html>
 	<div class="container" style="position: relative;">
 		<div class="theme-toggle-wrapper">
 			<button id="themeToggle" class="filter-btn" style="display: flex; align-items: center; gap: 0.5rem; border-radius: 2rem; padding: 0.5rem 1.25rem;">
-				<span id="themeToggleIcon">☀️</span> <span id="themeToggleText">Light Mode</span>
+				<span id="themeToggleIcon">🌙</span> <span id="themeToggleText">Dark Mode</span>
 			</button>
 		</div>
 		<header>
@@ -674,19 +674,19 @@ const htmlTemplate = `<!DOCTYPE html>
 		const themeToggleText = document.getElementById('themeToggleText');
 		const body = document.body;
 
-		// Load preferred theme
-		if (localStorage.getItem('theme') === 'light') {
-			body.classList.add('light-mode');
-			themeToggleIcon.textContent = '🌙';
-			themeToggleText.textContent = 'Dark Mode';
+		// Load preferred theme, default to light. If dark is saved, load dark.
+		if (localStorage.getItem('theme') === 'dark') {
+			body.classList.add('dark-mode');
+			themeToggleIcon.textContent = '☀️';
+			themeToggleText.textContent = 'Light Mode';
 		}
 
 		themeToggle.addEventListener('click', () => {
-			body.classList.toggle('light-mode');
-			const isLight = body.classList.contains('light-mode');
-			localStorage.setItem('theme', isLight ? 'light' : 'dark');
-			themeToggleIcon.textContent = isLight ? '🌙' : '☀️';
-			themeToggleText.textContent = isLight ? 'Dark Mode' : 'Light Mode';
+			body.classList.toggle('dark-mode');
+			const isDark = body.classList.contains('dark-mode');
+			localStorage.setItem('theme', isDark ? 'dark' : 'light');
+			themeToggleIcon.textContent = isDark ? '☀️' : '🌙';
+			themeToggleText.textContent = isDark ? 'Light Mode' : 'Dark Mode';
 		});
 	</script>
 </body>
