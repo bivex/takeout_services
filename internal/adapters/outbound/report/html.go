@@ -77,7 +77,28 @@ func GenerateHTMLReport(services []*model.DetectedService, emails []*model.Email
 		return suspicious[i].Date > suspicious[j].Date
 	})
 
-	t, err := template.New("report").Parse(htmlTemplate)
+	// Find user email from Delivered-To headers
+	userEmail := ""
+	emailCounts := make(map[string]int)
+	for _, email := range emails {
+		if delTo := email.Headers["Delivered-To"]; delTo != "" {
+			emailCounts[delTo]++
+		}
+	}
+	maxCount := 0
+	for addr, count := range emailCounts {
+		if count > maxCount {
+			maxCount = count
+			userEmail = addr
+		}
+	}
+	if userEmail == "" {
+		userEmail = "your-email@gmail.com"
+	}
+
+	t, err := template.New("report").Funcs(template.FuncMap{
+		"contains": strings.Contains,
+	}).Parse(htmlTemplate)
 	if err != nil {
 		return err
 	}
@@ -109,10 +130,12 @@ func GenerateHTMLReport(services []*model.DetectedService, emails []*model.Email
 	data := struct {
 		Services   []*model.DetectedService
 		Suspicious []SuspiciousAlert
+		UserEmail  string
 		Stats      interface{}
 	}{
 		Services:   services,
 		Suspicious: suspicious,
+		UserEmail:  userEmail,
 		Stats:      stats,
 	}
 
@@ -466,6 +489,8 @@ const htmlTemplate = `<!DOCTYPE html>
 			margin-top: 0;
 			grid-column: 4;
 			width: 100%;
+			display: flex;
+			gap: 0.25rem;
 		}
 
 		/* Back to Top Button */
@@ -504,6 +529,126 @@ const htmlTemplate = `<!DOCTYPE html>
 		
 		body.dark-mode .back-to-top {
 			color: #1B0C0C;
+		}
+
+		/* Modal Styles */
+		.modal {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0, 0, 0, 0.5);
+			z-index: 10000;
+			align-items: center;
+			justify-content: center;
+			padding: 1rem;
+		}
+
+		.modal.show {
+			display: flex;
+		}
+
+		.modal-content {
+			background-color: var(--panel-dark);
+			border: 1px solid var(--border);
+			border-radius: 1rem;
+			width: 100%;
+			max-width: 600px;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+		}
+
+		.modal-header {
+			padding: 1.5rem;
+			border-bottom: 1px solid var(--border);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.modal-header h2 {
+			font-size: 1.25rem;
+			font-weight: 700;
+			margin: 0;
+			letter-spacing: -0.015em;
+		}
+
+		.close-modal {
+			background: none;
+			border: none;
+			font-size: 1.75rem;
+			color: var(--text-muted);
+			cursor: pointer;
+			line-height: 1;
+		}
+
+		.modal-body {
+			padding: 1.5rem;
+			overflow-y: auto;
+			max-height: 70vh;
+		}
+
+		.form-group label {
+			display: block;
+			font-size: 0.85rem;
+			font-weight: 600;
+			margin-bottom: 0.5rem;
+			color: var(--text-muted);
+		}
+
+		.email-details-box {
+			background-color: var(--bg-dark);
+			border: 1px solid var(--border);
+			border-radius: 0.75rem;
+			padding: 1rem;
+			font-size: 0.9rem;
+			line-height: 1.6;
+		}
+
+		.email-textarea {
+			width: 100%;
+			height: 150px;
+			background-color: var(--bg-dark);
+			border: 1px solid var(--border);
+			border-radius: 0.75rem;
+			color: var(--text-main);
+			padding: 1rem;
+			font-family: inherit;
+			font-size: 0.9rem;
+			resize: none;
+			outline: none;
+			cursor: pointer;
+			transition: border-color 0.2s;
+			margin-top: 0.25rem;
+		}
+
+		.email-textarea:hover {
+			border-color: var(--accent);
+		}
+
+		.copy-feedback {
+			display: block;
+			font-size: 0.75rem;
+			color: var(--text-muted);
+			margin-top: 0.25rem;
+			text-align: right;
+		}
+
+		.modal-footer {
+			padding: 1.25rem 1.5rem;
+			border-top: 1px solid var(--border);
+			display: flex;
+			justify-content: flex-end;
+			gap: 0.75rem;
+			background-color: rgba(0, 0, 0, 0.02);
+		}
+		
+		body.dark-mode .modal-footer {
+			background-color: rgba(255, 255, 255, 0.01);
 		}
 
 		.service-card {
@@ -893,14 +1038,29 @@ const htmlTemplate = `<!DOCTYPE html>
 					</ul>
 				</div>
 
-				<a href="{{.DeleteURL}}" target="_blank" rel="noopener noreferrer" class="delete-action">
-					<span>Request Account Deletion</span>
-					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-						<polyline points="15 3 21 3 21 9"></polyline>
-						<line x1="10" y1="14" x2="21" y2="3"></line>
-					</svg>
-				</a>
+				<div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+					{{$isSearch := contains .DeleteURL "google.com/search"}}
+					{{if $isSearch}}
+					<button onclick="openErasureModal('{{.Name}}', '{{.Domain}}')" class="delete-action" style="margin-top: 0; flex: 1; border-radius: 0.75rem; padding: 0.65rem;">
+						Send GDPR Request
+					</button>
+					<a href="{{.DeleteURL}}" target="_blank" rel="noopener noreferrer" class="filter-btn" style="padding: 0.65rem 0.75rem; display: flex; align-items: center; justify-content: center; border-radius: 0.75rem;" title="Search Deletion Info">
+						🔍
+					</a>
+					{{else}}
+					<a href="{{.DeleteURL}}" target="_blank" rel="noopener noreferrer" class="delete-action" style="margin-top: 0; flex: 1; border-radius: 0.75rem; padding: 0.65rem;">
+						<span>Delete Account</span>
+						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+							<polyline points="15 3 21 3 21 9"></polyline>
+							<line x1="10" y1="14" x2="21" y2="3"></line>
+						</svg>
+					</a>
+					<button onclick="openErasureModal('{{.Name}}', '{{.Domain}}')" class="filter-btn" style="padding: 0.65rem 0.75rem; display: flex; align-items: center; justify-content: center; border-radius: 0.75rem;" title="Send GDPR Request">
+						✉️
+					</button>
+					{{end}}
+				</div>
 			</article>
 			{{end}}
 		</main>
@@ -1194,8 +1354,119 @@ const htmlTemplate = `<!DOCTYPE html>
 				behavior: 'smooth'
 			});
 		});
+
+		// GDPR Modal Logic
+		const erasureModal = document.getElementById('erasureModal');
+		const userNameInput = document.getElementById('userNameInput');
+		const userEmailInput = document.getElementById('userEmailInput');
+		const emailTo = document.getElementById('emailTo');
+		const emailSubject = document.getElementById('emailSubject');
+		const emailBodyText = document.getElementById('emailBodyText');
+		const sendEmailBtn = document.getElementById('sendEmailBtn');
+		const copyFeedback = document.getElementById('copyFeedback');
+
+		let activeServiceName = '';
+		let activeServiceDomain = '';
+
+		window.openErasureModal = function(name, domain) {
+			activeServiceName = name;
+			activeServiceDomain = domain;
+			
+			emailTo.textContent = 'privacy@' + domain + ', support@' + domain;
+			emailSubject.textContent = 'GDPR Article 17 Erasure Request - Account Associated with ' + userEmailInput.value;
+			
+			updateTemplate();
+			erasureModal.classList.add('show');
+		};
+
+		window.closeModal = function() {
+			erasureModal.classList.remove('show');
+			copyFeedback.textContent = 'Click text to copy!';
+			copyFeedback.style.color = 'var(--text-muted)';
+		};
+
+		window.updateTemplate = function() {
+			const name = userNameInput.value || '[Your Name]';
+			const email = userEmailInput.value || '[Your Email]';
+			
+			const body = 'Dear Privacy / Support Team at ' + activeServiceName + ',\n\n' +
+				'I am writing to request the immediate deletion of my account and all associated personal data under Article 17 of the General Data Protection Regulation (GDPR) / CCPA.\n\n' +
+				'Account Details:\n' +
+				'- Name: ' + name + '\n' +
+				'- Email: ' + email + '\n' +
+				'- Target Domain: ' + activeServiceDomain + '\n\n' +
+				'Please remove all my records, marketing preferences, and transaction histories from your systems. Additionally, please confirm via email once the erasure process has been completed.\n\n' +
+				'Sincerely,\n' +
+				name;
+
+			emailBodyText.value = body;
+			
+			// Update Mailto Link
+			const mailtoTo = 'privacy@' + activeServiceDomain;
+			const mailtoSubject = encodeURIComponent('GDPR Article 17 Erasure Request');
+			const mailtoBody = encodeURIComponent(body);
+			sendEmailBtn.href = 'mailto:' + mailtoTo + '?subject=' + mailtoSubject + '&body=' + mailtoBody;
+		};
+
+		window.copyTemplateText = function() {
+			emailBodyText.select();
+			try {
+				document.execCommand('copy');
+				copyFeedback.textContent = '✓ Copied to clipboard!';
+				copyFeedback.style.color = '#10b981';
+			} catch (err) {
+				copyFeedback.textContent = 'Failed to copy';
+			}
+		};
+
+		// Close modal if clicking outside content
+		window.addEventListener('click', (e) => {
+			if (e.target === erasureModal) {
+				closeModal();
+			}
+		});
 	</script>
 	<button id="backToTop" class="back-to-top" title="Back to top">↑</button>
+
+	<!-- GDPR Erasure Request Modal -->
+	<div id="erasureModal" class="modal">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h2>Send GDPR Erasure Request</h2>
+				<button class="close-modal" onclick="closeModal()">&times;</button>
+			</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<label for="userNameInput">Your Name:</label>
+					<input type="text" id="userNameInput" class="search-input" value="Your Name" oninput="updateTemplate()">
+				</div>
+				<div class="form-group" style="margin-top: 1rem;">
+					<label for="userEmailInput">Your Email Address:</label>
+					<input type="email" id="userEmailInput" class="search-input" value="{{.UserEmail}}" oninput="updateTemplate()">
+				</div>
+				
+				<div style="margin-top: 1.5rem;">
+					<label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-muted);">Email Details:</label>
+					<div class="email-details-box">
+						<strong>To:</strong> <span id="emailTo">privacy@domain.com</span><br>
+						<strong>Subject:</strong> <span id="emailSubject">GDPR Article 17 Right to Erasure Request</span>
+					</div>
+				</div>
+
+				<div style="margin-top: 1rem;">
+					<label for="emailBodyText" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-muted);">Email Body (Click to copy):</label>
+					<textarea id="emailBodyText" class="email-textarea" readonly onclick="copyTemplateText()"></textarea>
+					<span id="copyFeedback" class="copy-feedback">Click text to copy!</span>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="filter-btn" onclick="closeModal()">Cancel</button>
+				<a id="sendEmailBtn" href="#" class="delete-action" style="margin-top: 0; width: auto; padding: 0.65rem 1.5rem; border-radius: 0.75rem;">
+					Send Email ↗
+				</a>
+			</div>
+		</div>
+	</div>
 </body>
 </html>
 `
