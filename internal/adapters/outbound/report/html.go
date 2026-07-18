@@ -69,16 +69,16 @@ const htmlTemplate = `<!DOCTYPE html>
 	<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 	<style>
 		:root {
-			--bg-dark: #090d16;
-			--panel-dark: #121824;
-			--accent: #6366f1;
-			--accent-glow: rgba(99, 102, 241, 0.15);
-			--text-main: #f1f5f9;
-			--text-muted: #94a3b8;
-			--border: #1e293b;
-			--welcome-color: #3b82f6;
-			--reset-color: #f59e0b;
-			--receipt-color: #10b981;
+			--bg-dark: #1B0C0C;
+			--panel-dark: #2E1615;
+			--accent: #90DD55;
+			--accent-glow: rgba(144, 221, 85, 0.15);
+			--text-main: #F2E4E3;
+			--text-muted: #C8A679;
+			--border: rgba(200, 166, 121, 0.15);
+			--welcome-color: #90DD55;
+			--reset-color: #C8A679;
+			--receipt-color: #F2E4E3;
 		}
 
 		* {
@@ -109,7 +109,7 @@ const htmlTemplate = `<!DOCTYPE html>
 		h1 {
 			font-size: 2.5rem;
 			font-weight: 700;
-			background: linear-gradient(135deg, #a5b4fc, #6366f1, #4f46e5);
+			background: linear-gradient(135deg, #F2E4E3, #90DD55, #C8A679);
 			-webkit-background-clip: text;
 			-webkit-text-fill-color: transparent;
 			margin-bottom: 0.5rem;
@@ -279,9 +279,9 @@ const htmlTemplate = `<!DOCTYPE html>
 			text-transform: uppercase;
 		}
 
-		.conf-high { background-color: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-		.conf-mid { background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
-		.conf-low { background-color: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+		.conf-high { background-color: rgba(144, 221, 85, 0.15); color: #90DD55; border: 1px solid rgba(144, 221, 85, 0.3); }
+		.conf-mid { background-color: rgba(200, 166, 121, 0.15); color: #C8A679; border: 1px solid rgba(200, 166, 121, 0.3); }
+		.conf-low { background-color: rgba(242, 228, 227, 0.1); color: #F2E4E3; border: 1px solid rgba(242, 228, 227, 0.2); }
 
 		/* Indicator Badges */
 		.indicators {
@@ -298,10 +298,10 @@ const htmlTemplate = `<!DOCTYPE html>
 			font-weight: 500;
 		}
 
-		.badge.welcome { background-color: rgba(59, 130, 246, 0.1); color: var(--welcome-color); border: 1px solid rgba(59, 130, 246, 0.2); }
-		.badge.reset { background-color: rgba(245, 158, 11, 0.1); color: var(--reset-color); border: 1px solid rgba(245, 158, 11, 0.2); }
-		.badge.receipt { background-color: rgba(16, 185, 129, 0.1); color: var(--receipt-color); border: 1px solid rgba(16, 185, 129, 0.2); }
-		.badge.count { background-color: rgba(148, 163, 184, 0.1); color: var(--text-muted); border: 1px solid rgba(148, 163, 184, 0.2); }
+		.badge.welcome { background-color: rgba(144, 221, 85, 0.1); color: var(--welcome-color); border: 1px solid rgba(144, 221, 85, 0.2); }
+		.badge.reset { background-color: rgba(200, 166, 121, 0.1); color: var(--reset-color); border: 1px solid rgba(200, 166, 121, 0.2); }
+		.badge.receipt { background-color: rgba(242, 228, 227, 0.1); color: var(--receipt-color); border: 1px solid rgba(242, 228, 227, 0.2); }
+		.badge.count { background-color: rgba(200, 166, 121, 0.1); color: var(--text-muted); border: 1px solid rgba(200, 166, 121, 0.2); }
 
 		/* Expandable Verification Info */
 		.verify-section {
