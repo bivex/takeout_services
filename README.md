@@ -77,7 +77,7 @@ graph TD
 - [internal/adapters/outbound/mbox/parser.go](file:///Volumes/External/Code/takeout_services/internal/adapters/outbound/mbox/parser.go): Mbox parser implementation. Supports MIME multipart, Base64/Quoted-Printable decoding, header decodings, and attachment parsing.
 - [internal/adapters/outbound/detector/keyword_detector.go](file:///Volumes/External/Code/takeout_services/internal/adapters/outbound/detector/keyword_detector.go): Service detector implementation analyzing email subjects and bodies for welcome/reset/payment cues.
 - [internal/adapters/outbound/detector/known_services.go](file:///Volumes/External/Code/takeout_services/internal/adapters/outbound/detector/known_services.go): Database mapping domains to known service names and official account deletion URLs.
-- [internal/adapters/outbound/report/html.go](file:///Volumes/External/Code/takeout_services/internal/adapters/outbound/report/html.go): Generates the interactive, dark-themed HTML dashboard report.
+- [internal/adapters/outbound/report/html.go](file:///Volumes/External/Code/takeout_services/internal/adapters/outbound/report/html.go): Generates the interactive, dual-theme (Light/Dark) HTML dashboard report using the 'Clean Analytics' palette.
 - [internal/adapters/outbound/repository/repository.go](file:///Volumes/External/Code/takeout_services/internal/adapters/outbound/repository/repository.go): In-memory and JSON Lines output file adapters.
 
 ---
@@ -116,3 +116,11 @@ Analyze your email history to identify all registered services and generate a de
 - `--report-html`: Path to write the visual HTML dashboard (defaults to `report.html`).
 - `--report-json`: Path to write the structured JSON dataset of detected services (defaults to `footprint.json`).
 - `--cpuprofile` / `--memprofile`: Generates CPU and memory pprof profile dumps for profiling.
+
+### 5. Serve HTML Dashboard
+Start a local web server to view the report dashboard:
+```bash
+python3 -m http.server 8000
+```
+Then navigate to [http://localhost:8000/report.html](http://localhost:8000/report.html) in your browser.
+
