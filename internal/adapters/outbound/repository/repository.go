@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"os"
@@ -39,8 +40,10 @@ func (r *InMemoryRepository) Emails() []*model.Email {
 
 // JSONLinesRepository streams parsed emails directly to a JSON Lines (.jsonl) file.
 type JSONLinesRepository struct {
-	file *os.File
-	mu   sync.Mutex
+	file    *os.File
+	writer  *bufio.Writer
+	encoder *json.Encoder
+	mu      sync.Mutex
 }
 
 // NewJSONLinesRepository creates a new JSONLinesRepository writing to targetPath.
@@ -49,29 +52,38 @@ func NewJSONLinesRepository(targetPath string) (*JSONLinesRepository, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &JSONLinesRepository{file: file}, nil
+	writer := bufio.NewWriterSize(file, 64*1024) // 64KB buffer
+	return &JSONLinesRepository{
+		file:    file,
+		writer:  writer,
+		encoder: json.NewEncoder(writer),
+	}, nil
 }
 
 // Save implements outbound.EmailRepository by writing email as a JSON line.
 func (r *JSONLinesRepository) Save(ctx context.Context, email *model.Email) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-
-	bytesVal, err := json.Marshal(email)
-	if err != nil {
-		return err
-	}
-
-	if _, err := r.file.Write(append(bytesVal, '\n')); err != nil {
-		return err
-	}
-	return nil
+	return r.encoder.Encode(email)
 }
 
 // Close closes the underlying JSON lines file.
 func (r *JSONLinesRepository) Close() error {
-	if r.file != nil {
-		return r.file.Close()
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	var flushErr error
+	if r.writer != nil {
+		flushErr = r.writer.Flush()
 	}
-	return nil
+
+	var closeErr error
+	if r.file != nil {
+		closeErr = r.file.Close()
+	}
+
+	if flushErr != nil {
+		return flushErr
+	}
+	return closeErr
 }
