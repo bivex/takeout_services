@@ -19,30 +19,30 @@ The project is structured into three distinct layers, ensuring that the core bus
 ```mermaid
 graph TD
     %% Inbound Adapters
-    subgraph Inbound Adapters (Driving)
+    subgraph "Inbound Adapters (Driving)"
         CLI[cmd/cli/main.go]
     end
 
     %% Inbound Ports
-    subgraph Inbound Ports (Driving Ports)
+    subgraph "Inbound Ports (Driving Ports)"
         ImportUC[ports/inbound/ImportEmailsUseCase]
     end
 
     %% Domain Service & Core Entities
-    subgraph Core Domain & Application
+    subgraph "Core Domain & Application"
         Importer[application/services/EmailImporter]
         EmailModel[domain/model/Email]
         Errors[domain/errors]
     end
 
     %% Outbound Ports
-    subgraph Outbound Ports (Driven Ports)
+    subgraph "Outbound Ports (Driven Ports)"
         MboxParserPort[ports/outbound/MboxParser]
         EmailRepoPort[ports/outbound/EmailRepository]
     end
 
     %% Outbound Adapters
-    subgraph Outbound Adapters (Driven)
+    subgraph "Outbound Adapters (Driven)"
         MboxParserImpl[adapters/outbound/mbox/Parser]
         InMemoryRepo[adapters/outbound/repository/InMemoryRepository]
         JSONLinesRepo[adapters/outbound/repository/JSONLinesRepository]
