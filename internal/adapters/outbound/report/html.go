@@ -63,6 +63,7 @@ const htmlTemplate = `<!DOCTYPE html>
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Digital footprint analyzer report showing web service registrations, payment receipts, and password resets from email history with direct deletion links.">
 	<title>Digital Footprint Analyzer</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -74,12 +75,12 @@ const htmlTemplate = `<!DOCTYPE html>
 			--accent: #0284C7;
 			--accent-glow: rgba(2, 132, 199, 0.1);
 			--text-main: #0F172A;
-			--text-muted: #64748B;
-			--border: #E2E8F0;
+			--text-muted: #334155; /* Darker grey Slate-700 for 7:1 contrast ratio against white */
+			--border: #CBD5E1; /* Slate-300 for distinct card borders */
 
-			--welcome-color: #0284C7;
-			--welcome-bg: rgba(2, 132, 199, 0.08);
-			--welcome-border: rgba(2, 132, 199, 0.2);
+			--welcome-color: #0369A1; /* Sky-700 for 5.9:1 contrast ratio */
+			--welcome-bg: rgba(3, 105, 161, 0.08);
+			--welcome-border: rgba(3, 105, 161, 0.2);
 
 			--reset-color: #B45309;
 			--reset-bg: rgba(245, 158, 11, 0.08);
@@ -251,7 +252,7 @@ const htmlTemplate = `<!DOCTYPE html>
 			border-color: var(--accent);
 		}
 
-		.stat-info h3 {
+		.stat-info h2 {
 			font-size: 0.9rem;
 			color: var(--text-muted);
 			text-transform: uppercase;
@@ -364,7 +365,7 @@ const htmlTemplate = `<!DOCTYPE html>
 			margin-bottom: 1rem;
 		}
 
-		.service-identity h2 {
+		.service-identity h3 {
 			font-size: 1.3rem;
 			font-weight: 600;
 			color: var(--text-main);
@@ -528,21 +529,21 @@ const htmlTemplate = `<!DOCTYPE html>
 		<section class="stats-grid">
 			<div class="stat-card">
 				<div class="stat-info">
-					<h3>Detected Services</h3>
+					<h2>Detected Services</h2>
 					<div class="stat-value">{{.Stats.Total}}</div>
 				</div>
 				<div class="stat-icon">🕸️</div>
 			</div>
 			<div class="stat-card">
 				<div class="stat-info">
-					<h3>High Confidence Accounts</h3>
+					<h2>High Confidence Accounts</h2>
 					<div class="stat-value" style="color: #10b981;">{{.Stats.HighConf}}</div>
 				</div>
 				<div class="stat-icon">🛡️</div>
 			</div>
 			<div class="stat-card">
 				<div class="stat-info">
-					<h3>Subscriptions & Paid</h3>
+					<h2>Subscriptions & Paid</h2>
 					<div class="stat-value" style="color: #3b82f6;">{{.Stats.Subscriptions}}</div>
 				</div>
 				<div class="stat-icon">💳</div>
@@ -572,7 +573,7 @@ const htmlTemplate = `<!DOCTYPE html>
 					 data-receipt="{{.HasReceipt}}">
 				<div class="card-header">
 					<div class="service-identity">
-						<h2>{{.Name}}</h2>
+						<h3>{{.Name}}</h3>
 						<div class="service-domain">{{.Domain}}</div>
 					</div>
 					<div class="confidence-badge {{if ge .Confidence 7}}conf-high{{else if ge .Confidence 4}}conf-mid{{else}}conf-low{{end}}">
@@ -674,8 +675,15 @@ const htmlTemplate = `<!DOCTYPE html>
 		const themeToggleText = document.getElementById('themeToggleText');
 		const body = document.body;
 
+		let savedTheme = 'light';
+		try {
+			savedTheme = localStorage.getItem('theme') || 'light';
+		} catch (e) {
+			// ignore SecurityError in sandbox / Chrome about:blank frame
+		}
+
 		// Load preferred theme, default to light. If dark is saved, load dark.
-		if (localStorage.getItem('theme') === 'dark') {
+		if (savedTheme === 'dark') {
 			body.classList.add('dark-mode');
 			themeToggleIcon.textContent = '☀️';
 			themeToggleText.textContent = 'Light Mode';
@@ -684,7 +692,11 @@ const htmlTemplate = `<!DOCTYPE html>
 		themeToggle.addEventListener('click', () => {
 			body.classList.toggle('dark-mode');
 			const isDark = body.classList.contains('dark-mode');
-			localStorage.setItem('theme', isDark ? 'dark' : 'light');
+			try {
+				localStorage.setItem('theme', isDark ? 'dark' : 'light');
+			} catch (e) {
+				// ignore
+			}
 			themeToggleIcon.textContent = isDark ? '☀️' : '🌙';
 			themeToggleText.textContent = isDark ? 'Light Mode' : 'Dark Mode';
 		});
