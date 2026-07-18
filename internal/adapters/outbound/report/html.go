@@ -76,9 +76,114 @@ const htmlTemplate = `<!DOCTYPE html>
 			--text-main: #F2E4E3;
 			--text-muted: #C8A679;
 			--border: rgba(200, 166, 121, 0.15);
+
 			--welcome-color: #90DD55;
+			--welcome-bg: rgba(144, 221, 85, 0.1);
+			--welcome-border: rgba(144, 221, 85, 0.2);
+
 			--reset-color: #C8A679;
+			--reset-bg: rgba(200, 166, 121, 0.1);
+			--reset-border: rgba(200, 166, 121, 0.2);
+
 			--receipt-color: #F2E4E3;
+			--receipt-bg: rgba(242, 228, 227, 0.1);
+			--receipt-border: rgba(242, 228, 227, 0.2);
+
+			--unclassified-bg: rgba(242, 228, 227, 0.05);
+			--unclassified-border: rgba(242, 228, 227, 0.15);
+
+			--count-bg: rgba(200, 166, 121, 0.1);
+			--count-border: rgba(200, 166, 121, 0.2);
+
+			--conf-high-color: #90DD55;
+			--conf-high-bg: rgba(144, 221, 85, 0.15);
+			--conf-high-border: rgba(144, 221, 85, 0.3);
+
+			--conf-mid-color: #C8A679;
+			--conf-mid-bg: rgba(200, 166, 121, 0.15);
+			--conf-mid-border: rgba(200, 166, 121, 0.3);
+
+			--conf-low-color: #F2E4E3;
+			--conf-low-bg: rgba(242, 228, 227, 0.1);
+			--conf-low-border: rgba(242, 228, 227, 0.2);
+
+			--delete-btn-bg: rgba(239, 68, 68, 0.1);
+			--delete-btn-text: #ef4444;
+			--delete-btn-border: rgba(239, 68, 68, 0.2);
+			--delete-btn-hover-bg: #ef4444;
+			--delete-btn-hover-border: #ef4444;
+		}
+
+		body.light-mode {
+			--bg-dark: #F8FAFC;
+			--panel-dark: #FFFFFF;
+			--accent: #0284C7;
+			--accent-glow: rgba(2, 132, 199, 0.1);
+			--text-main: #0F172A;
+			--text-muted: #64748B;
+			--border: #E2E8F0;
+
+			--welcome-color: #0284C7;
+			--welcome-bg: rgba(2, 132, 199, 0.08);
+			--welcome-border: rgba(2, 132, 199, 0.2);
+
+			--reset-color: #B45309;
+			--reset-bg: rgba(245, 158, 11, 0.08);
+			--reset-border: rgba(245, 158, 11, 0.25);
+
+			--receipt-color: #0F172A;
+			--receipt-bg: rgba(15, 23, 42, 0.05);
+			--receipt-border: rgba(15, 23, 42, 0.12);
+
+			--unclassified-bg: rgba(100, 116, 139, 0.06);
+			--unclassified-border: rgba(100, 116, 139, 0.15);
+
+			--count-bg: rgba(100, 116, 139, 0.06);
+			--count-border: rgba(100, 116, 139, 0.15);
+
+			--conf-high-color: #0369A1;
+			--conf-high-bg: rgba(2, 132, 199, 0.08);
+			--conf-high-border: rgba(2, 132, 199, 0.2);
+
+			--conf-mid-color: #B45309;
+			--conf-mid-bg: rgba(245, 158, 11, 0.08);
+			--conf-mid-border: rgba(245, 158, 11, 0.25);
+
+			--conf-low-color: #DC2626;
+			--conf-low-bg: rgba(220, 30, 30, 0.08);
+			--conf-low-border: rgba(220, 30, 30, 0.2);
+
+			--delete-btn-bg: rgba(220, 38, 38, 0.08);
+			--delete-btn-text: #DC2626;
+			--delete-btn-border: rgba(220, 38, 38, 0.2);
+			--delete-btn-hover-bg: #DC2626;
+			--delete-btn-hover-border: #DC2626;
+		}
+
+		body.light-mode h1 {
+			background: linear-gradient(135deg, #0F172A, #0284C7, #64748B);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+		}
+
+		body.light-mode .stat-icon {
+			opacity: 0.12;
+		}
+
+		.theme-toggle-wrapper {
+			position: absolute;
+			top: 2rem;
+			right: 1.5rem;
+		}
+		
+		@media (max-width: 768px) {
+			.theme-toggle-wrapper {
+				position: static;
+				margin-bottom: 1.5rem;
+				text-align: center;
+				display: flex;
+				justify-content: center;
+			}
 		}
 
 		* {
@@ -279,9 +384,9 @@ const htmlTemplate = `<!DOCTYPE html>
 			text-transform: uppercase;
 		}
 
-		.conf-high { background-color: rgba(144, 221, 85, 0.15); color: #90DD55; border: 1px solid rgba(144, 221, 85, 0.3); }
-		.conf-mid { background-color: rgba(200, 166, 121, 0.15); color: #C8A679; border: 1px solid rgba(200, 166, 121, 0.3); }
-		.conf-low { background-color: rgba(242, 228, 227, 0.1); color: #F2E4E3; border: 1px solid rgba(242, 228, 227, 0.2); }
+		.conf-high { background-color: var(--conf-high-bg); color: var(--conf-high-color); border: 1px solid var(--conf-high-border); }
+		.conf-mid { background-color: var(--conf-mid-bg); color: var(--conf-mid-color); border: 1px solid var(--conf-mid-border); }
+		.conf-low { background-color: var(--conf-low-bg); color: var(--conf-low-color); border: 1px solid var(--conf-low-border); }
 
 		/* Indicator Badges */
 		.indicators {
@@ -298,11 +403,11 @@ const htmlTemplate = `<!DOCTYPE html>
 			font-weight: 500;
 		}
 
-		.badge.welcome { background-color: rgba(144, 221, 85, 0.1); color: var(--welcome-color); border: 1px solid rgba(144, 221, 85, 0.2); }
-		.badge.reset { background-color: rgba(200, 166, 121, 0.1); color: var(--reset-color); border: 1px solid rgba(200, 166, 121, 0.2); }
-		.badge.receipt { background-color: rgba(242, 228, 227, 0.1); color: var(--receipt-color); border: 1px solid rgba(242, 228, 227, 0.2); }
-		.badge.unclassified { background-color: rgba(242, 228, 227, 0.05); color: var(--text-muted); border: 1px solid rgba(242, 228, 227, 0.15); }
-		.badge.count { background-color: rgba(200, 166, 121, 0.1); color: var(--text-muted); border: 1px solid rgba(200, 166, 121, 0.2); }
+		.badge.welcome { background-color: var(--welcome-bg); color: var(--welcome-color); border: 1px solid var(--welcome-border); }
+		.badge.reset { background-color: var(--reset-bg); color: var(--reset-color); border: 1px solid var(--reset-border); }
+		.badge.receipt { background-color: var(--receipt-bg); color: var(--receipt-color); border: 1px solid var(--receipt-border); }
+		.badge.unclassified { background-color: var(--unclassified-bg); color: var(--text-muted); border: 1px solid var(--unclassified-border); }
+		.badge.count { background-color: var(--count-bg); color: var(--text-muted); border: 1px solid var(--count-border); }
 
 		/* Expandable Verification Info */
 		.verify-section {
@@ -371,9 +476,9 @@ const htmlTemplate = `<!DOCTYPE html>
 			justify-content: center;
 			gap: 0.5rem;
 			width: 100%;
-			background-color: rgba(239, 68, 68, 0.1);
-			color: #ef4444;
-			border: 1px solid rgba(239, 68, 68, 0.2);
+			background-color: var(--delete-btn-bg);
+			color: var(--delete-btn-text);
+			border: 1px solid var(--delete-btn-border);
 			border-radius: 0.75rem;
 			padding: 0.65rem;
 			font-family: inherit;
@@ -386,10 +491,10 @@ const htmlTemplate = `<!DOCTYPE html>
 		}
 
 		.delete-action:hover {
-			background-color: #ef4444;
+			background-color: var(--delete-btn-hover-bg);
 			color: #ffffff;
-			border-color: #ef4444;
-			box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+			border-color: var(--delete-btn-hover-border);
+			box-shadow: 0 0 10px var(--accent-glow);
 		}
 
 		/* Responsive tweaks */
@@ -408,7 +513,12 @@ const htmlTemplate = `<!DOCTYPE html>
 	</style>
 </head>
 <body>
-	<div class="container">
+	<div class="container" style="position: relative;">
+		<div class="theme-toggle-wrapper">
+			<button id="themeToggle" class="filter-btn" style="display: flex; align-items: center; gap: 0.5rem; border-radius: 2rem; padding: 0.5rem 1.25rem;">
+				<span id="themeToggleIcon">☀️</span> <span id="themeToggleText">Light Mode</span>
+			</button>
+		</div>
 		<header>
 			<h1>Digital Footprint Report</h1>
 			<p class="subtitle">Identified digital services and accounts based on email history</p>
@@ -556,6 +666,27 @@ const htmlTemplate = `<!DOCTYPE html>
 				currentFilter = btn.getAttribute('data-filter');
 				applyFilters();
 			});
+		});
+
+		// Theme Toggle Logic
+		const themeToggle = document.getElementById('themeToggle');
+		const themeToggleIcon = document.getElementById('themeToggleIcon');
+		const themeToggleText = document.getElementById('themeToggleText');
+		const body = document.body;
+
+		// Load preferred theme
+		if (localStorage.getItem('theme') === 'light') {
+			body.classList.add('light-mode');
+			themeToggleIcon.textContent = '🌙';
+			themeToggleText.textContent = 'Dark Mode';
+		}
+
+		themeToggle.addEventListener('click', () => {
+			body.classList.toggle('light-mode');
+			const isLight = body.classList.contains('light-mode');
+			localStorage.setItem('theme', isLight ? 'light' : 'dark');
+			themeToggleIcon.textContent = isLight ? '🌙' : '☀️';
+			themeToggleText.textContent = isLight ? 'Dark Mode' : 'Light Mode';
 		});
 	</script>
 </body>
