@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"takeout_services/internal/domain/model"
 )
@@ -48,7 +49,14 @@ func PrintEmailDetails(jsonlPath string, target string) error {
 			return fmt.Errorf("error parsing JSON on line %d: %v", currentIndex+1, err)
 		}
 
-		if (isIndex && currentIndex == targetIdx) || (!isIndex && (email.ID == target || email.MessageID == target)) {
+		match := false
+		if isIndex {
+			match = (currentIndex == targetIdx)
+		} else {
+			match = (email.ID == target || email.MessageID == target || (len(target) >= 6 && strings.HasPrefix(email.ID, target)))
+		}
+
+		if match {
 			// Print email details
 			fmt.Println("================================================================================")
 			fmt.Printf("Index:    %d\n", currentIndex)

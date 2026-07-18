@@ -113,13 +113,17 @@ func (d *KeywordDetector) Detect(ctx context.Context, emails []*model.Email) ([]
 			// Avoid duplicates in subjects
 			duplicate := false
 			for _, sub := range accum.sampleSubjects {
-				if sub == email.Subject {
+				if strings.Contains(sub, email.Subject) {
 					duplicate = true
 					break
 				}
 			}
 			if !duplicate && email.Subject != "" {
-				accum.sampleSubjects = append(accum.sampleSubjects, email.Subject)
+				shortID := email.ID
+				if len(shortID) > 8 {
+					shortID = shortID[:8]
+				}
+				accum.sampleSubjects = append(accum.sampleSubjects, fmt.Sprintf("[ID: %s] %s", shortID, email.Subject))
 			}
 		}
 	}

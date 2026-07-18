@@ -12,6 +12,8 @@ import (
 
 // SuspiciousAlert represents a blocked, spam, or security alert notification.
 type SuspiciousAlert struct {
+	ID      string
+	ShortID string
 	From    string
 	Subject string
 	Date    string
@@ -63,7 +65,13 @@ func GenerateHTMLReport(services []*model.DetectedService, emails []*model.Email
 		}
 
 		if alertType != "" {
+			shortID := email.ID
+			if len(shortID) > 8 {
+				shortID = shortID[:8]
+			}
 			suspicious = append(suspicious, SuspiciousAlert{
+				ID:      email.ID,
+				ShortID: shortID,
 				From:    email.From,
 				Subject: email.Subject,
 				Date:    email.Date.Format("2006-01-02 15:04"),
@@ -1082,6 +1090,9 @@ const htmlTemplate = `<!DOCTYPE html>
 						<div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem;">
 							<span class="badge-alert-type {{if eq .Type "Spam"}}badge-spam{{else if eq .Type "Security Alert"}}badge-security{{else}}badge-trash{{end}}" style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 0.15rem 0.4rem; border-radius: 0.25rem; letter-spacing: 0.05em;">
 								{{.Type}}
+							</span>
+							<span style="font-family: monospace; font-size: 0.7rem; background-color: var(--count-bg); color: var(--text-muted); border: 1px solid var(--count-border); padding: 0.15rem 0.4rem; border-radius: 0.25rem; cursor: pointer;" onclick="navigator.clipboard.writeText('{{.ID}}'); alert('Copied ID: {{.ID}}')" title="Click to copy full email ID for CLI reader">
+								ID: {{.ShortID}}
 							</span>
 							<strong style="font-size: 0.95rem; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; max-width: 300px;" title="{{.From}}">
 								{{.From}}
