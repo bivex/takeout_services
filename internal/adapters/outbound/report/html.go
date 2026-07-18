@@ -1104,6 +1104,48 @@ const htmlTemplate = `<!DOCTYPE html>
 		</section>
 	</div>
 
+	<button id="backToTop" class="back-to-top" title="Back to top">↑</button>
+
+	<!-- GDPR Erasure Request Modal -->
+	<div id="erasureModal" class="modal">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h2>Send GDPR Erasure Request</h2>
+				<button class="close-modal" onclick="closeModal()">&times;</button>
+			</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<label for="userNameInput">Your Name:</label>
+					<input type="text" id="userNameInput" class="search-input" value="Your Name" oninput="updateTemplate()">
+				</div>
+				<div class="form-group" style="margin-top: 1rem;">
+					<label for="userEmailInput">Your Email Address:</label>
+					<input type="email" id="userEmailInput" class="search-input" value="{{.UserEmail}}" oninput="updateTemplate()">
+				</div>
+				
+				<div style="margin-top: 1.5rem;">
+					<label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-muted);">Email Details:</label>
+					<div class="email-details-box">
+						<strong>To:</strong> <span id="emailTo">privacy@domain.com</span><br>
+						<strong>Subject:</strong> <span id="emailSubject">GDPR Article 17 Right to Erasure Request</span>
+					</div>
+				</div>
+
+				<div style="margin-top: 1rem;">
+					<label for="emailBodyText" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-muted);">Email Body (Click to copy):</label>
+					<textarea id="emailBodyText" class="email-textarea" readonly onclick="copyTemplateText()"></textarea>
+					<span id="copyFeedback" class="copy-feedback">Click text to copy!</span>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="filter-btn" onclick="closeModal()">Cancel</button>
+				<a id="sendEmailBtn" href="#" class="delete-action" style="margin-top: 0; width: auto; padding: 0.65rem 1.5rem; border-radius: 0.75rem;">
+					Send Email ↗
+				</a>
+			</div>
+		</div>
+	</div>
+
 	<script>
 		// Expandable details for email verification
 		function toggleDetails(button) {
@@ -1426,47 +1468,6 @@ const htmlTemplate = `<!DOCTYPE html>
 			}
 		});
 	</script>
-	<button id="backToTop" class="back-to-top" title="Back to top">↑</button>
-
-	<!-- GDPR Erasure Request Modal -->
-	<div id="erasureModal" class="modal">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h2>Send GDPR Erasure Request</h2>
-				<button class="close-modal" onclick="closeModal()">&times;</button>
-			</div>
-			<div class="modal-body">
-				<div class="form-group">
-					<label for="userNameInput">Your Name:</label>
-					<input type="text" id="userNameInput" class="search-input" value="Your Name" oninput="updateTemplate()">
-				</div>
-				<div class="form-group" style="margin-top: 1rem;">
-					<label for="userEmailInput">Your Email Address:</label>
-					<input type="email" id="userEmailInput" class="search-input" value="{{.UserEmail}}" oninput="updateTemplate()">
-				</div>
-				
-				<div style="margin-top: 1.5rem;">
-					<label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-muted);">Email Details:</label>
-					<div class="email-details-box">
-						<strong>To:</strong> <span id="emailTo">privacy@domain.com</span><br>
-						<strong>Subject:</strong> <span id="emailSubject">GDPR Article 17 Right to Erasure Request</span>
-					</div>
-				</div>
-
-				<div style="margin-top: 1rem;">
-					<label for="emailBodyText" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-muted);">Email Body (Click to copy):</label>
-					<textarea id="emailBodyText" class="email-textarea" readonly onclick="copyTemplateText()"></textarea>
-					<span id="copyFeedback" class="copy-feedback">Click text to copy!</span>
-				</div>
-			</div>
-			<div class="modal-footer">
-				<button class="filter-btn" onclick="closeModal()">Cancel</button>
-				<a id="sendEmailBtn" href="#" class="delete-action" style="margin-top: 0; width: auto; padding: 0.65rem 1.5rem; border-radius: 0.75rem;">
-					Send Email ↗
-				</a>
-			</div>
-		</div>
-	</div>
 </body>
 </html>
 `
