@@ -10,6 +10,7 @@ import (
 	"runtime/pprof"
 	"time"
 
+	"takeout_services/internal/adapters/inbound/server"
 	"takeout_services/internal/adapters/outbound/detector"
 	"takeout_services/internal/adapters/outbound/mbox"
 	"takeout_services/internal/adapters/outbound/repository"
@@ -49,10 +50,14 @@ func main() {
 	reportJSON := flag.String("report-json", "footprint.json", "Path to write the detected services JSON report")
 	reportHTML := flag.String("report-html", "report.html", "Path to write the visual HTML report dashboard")
 
+	// Server flags
+	serve := flag.Bool("serve", false, "Start a local Go web server to host the interactive report and sync checkbox states")
+	port := flag.Int("port", 8000, "Port to run the Go web server on")
+
 	flag.Parse()
 
-	if *inputPath == "" {
-		fmt.Println("Error: --input flag is required.")
+	if *inputPath == "" && !*serve {
+		fmt.Println("Error: Either --input flag or --serve flag must be specified.")
 		flag.Usage()
 		os.Exit(1)
 	}
@@ -70,17 +75,21 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	// Open input mbox file
-	mboxFile, err := os.Open(*inputPath)
-	if err != nil {
-		log.Fatalf("Error opening input mbox file: %v", err)
-	}
-	defer mboxFile.Close()
-
 	ctx := context.Background()
 	startTime := time.Now()
 
-	if *detect {
+	var mboxFile *os.File
+	var err error
+	if *inputPath != "" {
+		// Open input mbox file
+		mboxFile, err = os.Open(*inputPath)
+		if err != nil {
+			log.Fatalf("Error opening input mbox file: %v", err)
+		}
+		defer mboxFile.Close()
+	}
+
+	if *detect && mboxFile != nil {
 		// Run Footprint Detection Usecase
 		if *verbose {
 			fmt.Printf("Analyzing digital footprint from: %s\n", *inputPath)
@@ -104,7 +113,7 @@ func main() {
 				fmt.Printf("HTML dashboard report written to: %s\n", *reportHTML)
 			}
 		}
-	} else {
+	} else if mboxFile != nil {
 		// Run Standard Email Importing Usecase
 		parser := mbox.NewParser()
 		jsonRepo, err := repository.NewJSONLinesRepository(*outputPath)
@@ -146,6 +155,13 @@ func main() {
 		runtime.GC() // get up-to-date statistics
 		if err := pprof.WriteHeapProfile(f); err != nil {
 			log.Fatalf("could not write memory profile: %v", err)
+		}
+	}
+
+	if *serve {
+		// Start Go HTTP Web Server
+		if err := server.StartServer(*port, *reportHTML, "deleted_services.json"); err != nil {
+			log.Fatalf("Error starting web server: %v", err)
 		}
 	}
 }

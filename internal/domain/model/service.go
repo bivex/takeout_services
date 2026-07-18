@@ -11,6 +11,7 @@ type DetectedService struct {
 	SourcesCount   int      `json:"sources_count"`
 	SampleSubjects []string `json:"sample_subjects"`
 	DeleteURL      string   `json:"delete_url"`
+	IsDeleted      bool     `json:"is_deleted"`
 }
 
 // NewDetectedService constructs a new DetectedService.
@@ -25,5 +26,6 @@ func NewDetectedService(name, domain string, welcome, reset, receipt bool, confi
 		SourcesCount:   count,
 		SampleSubjects: subjects,
 		DeleteURL:      deleteURL,
+		IsDeleted:      false,
 	}
 }

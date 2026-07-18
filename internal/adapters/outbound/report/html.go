@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"takeout_services/internal/adapters/outbound/repository"
 	"takeout_services/internal/domain/model"
 )
 
@@ -19,6 +20,12 @@ type SuspiciousAlert struct {
 
 // GenerateHTMLReport outputs a visual dashboard report to targetPath.
 func GenerateHTMLReport(services []*model.DetectedService, emails []*model.Email, targetPath string) error {
+	// Load state repository to populate IsDeleted field
+	stateRepo := repository.NewFileStateRepository("deleted_services.json")
+	for _, s := range services {
+		s.IsDeleted = stateRepo.IsDeleted(s.Domain)
+	}
+
 	// Sort by confidence (descending) then by name
 	sort.Slice(services, func(i, j int) bool {
 		if services[i].Confidence == services[j].Confidence {
@@ -848,7 +855,7 @@ const htmlTemplate = `<!DOCTYPE html>
 		<!-- Services List -->
 		<main id="servicesGrid" class="services-grid">
 			{{range .Services}}
-			<article class="service-card" 
+			<article class="service-card{{if .IsDeleted}} deleted-card{{end}}" 
 					 data-name="{{.Name}}" 
 					 data-domain="{{.Domain}}"
 					 data-confidence="{{.Confidence}}"
@@ -856,7 +863,7 @@ const htmlTemplate = `<!DOCTYPE html>
 				<div class="card-header">
 					<div style="display: flex; gap: 0.75rem; align-items: flex-start;">
 						<label class="deleted-checkbox-wrapper" title="Mark account as deleted">
-							<input type="checkbox" class="deleted-checkbox" onchange="toggleDeleted(this, '{{.Domain}}')">
+							<input type="checkbox" class="deleted-checkbox" onchange="toggleDeleted(this, '{{.Domain}}')" {{if .IsDeleted}}checked{{end}}>
 							<span class="checkmark"></span>
 						</label>
 						<div class="service-identity">
@@ -1035,21 +1042,26 @@ const htmlTemplate = `<!DOCTYPE html>
 			let deletedCount = 0;
 			cards.forEach(card => {
 				const domain = card.getAttribute('data-domain');
-				let isDeleted = false;
-				try {
-					isDeleted = localStorage.getItem('deleted-service-' + domain) === 'true';
-				} catch (e) {
-					// ignore
-				}
 				const checkbox = card.querySelector('.deleted-checkbox');
+				
+				// Server-rendered checked status is primary. Fallback to localStorage.
+				let isDeleted = (checkbox && checkbox.checked);
+				if (!isDeleted) {
+					try {
+						isDeleted = localStorage.getItem('deleted-service-' + domain) === 'true';
+					} catch (e) {
+						// ignore
+					}
+				}
 				
 				if (isDeleted) {
 					card.classList.add('deleted-card');
 					if (checkbox) checkbox.checked = true;
 					deletedCount++;
 				} else {
-					card.classList.remove('deleted-card');
-					if (checkbox) checkbox.checked = false;
+					if (checkbox && !checkbox.checked) {
+						card.classList.remove('deleted-card');
+					}
 				}
 			});
 
@@ -1059,16 +1071,71 @@ const htmlTemplate = `<!DOCTYPE html>
 		}
 
 		window.toggleDeleted = function(checkbox, domain) {
+			const isChecked = checkbox.checked;
+			
+			// Optimistically toggle styles
+			const card = checkbox.closest('.service-card');
+			if (card) {
+				if (isChecked) {
+					card.classList.add('deleted-card');
+				} else {
+					card.classList.remove('deleted-card');
+				}
+			}
+			
+			// Recalculate stats
+			let deletedCount = 0;
+			cards.forEach(c => {
+				const cb = c.querySelector('.deleted-checkbox');
+				if (cb && cb.checked) deletedCount++;
+			});
+			if (deletedStatVal) {
+				deletedStatVal.textContent = deletedCount + ' / ' + cards.length;
+			}
+
+			// Local fallback
 			try {
-				localStorage.setItem('deleted-service-' + domain, checkbox.checked ? 'true' : 'false');
+				localStorage.setItem('deleted-service-' + domain, isChecked ? 'true' : 'false');
 			} catch (e) {
 				// ignore
 			}
-			updateDeletedStats();
+
+			// Sync with Go web server
+			fetch('/api/toggle-deleted', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ domain: domain, deleted: isChecked })
+			}).catch(err => {
+				console.log('Static mode: state persisted locally only');
+			});
 		};
 
-		// Initial load of stats
-		updateDeletedStats();
+		// Load state from local server if available, merging with localStorage
+		fetch('/api/state')
+			.then(res => res.json())
+			.then(data => {
+				if (data && data.deleted) {
+					data.deleted.forEach(domain => {
+						try {
+							localStorage.setItem('deleted-service-' + domain, 'true');
+						} catch (e) {}
+					});
+					cards.forEach(card => {
+						const domain = card.getAttribute('data-domain');
+						const checkbox = card.querySelector('.deleted-checkbox');
+						if (data.deleted.includes(domain)) {
+							if (checkbox) checkbox.checked = true;
+						}
+					});
+					updateDeletedStats();
+				}
+			})
+			.catch(err => {
+				console.log('Static file mode: Using local state');
+				updateDeletedStats();
+			});
 
 		// View Toggles Logic
 		const viewGridBtn = document.getElementById('viewGrid');
