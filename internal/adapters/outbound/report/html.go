@@ -539,6 +539,25 @@ const htmlTemplate = `<!DOCTYPE html>
 			color: #1B0C0C;
 		}
 
+		.copy-id-badge {
+			font-family: monospace;
+			font-size: 0.7rem;
+			background-color: var(--count-bg);
+			color: var(--text-muted);
+			border: 1px solid var(--count-border);
+			padding: 0.1rem 0.35rem;
+			border-radius: 0.25rem;
+			cursor: pointer;
+			margin-right: 0.4rem;
+			display: inline-block;
+			transition: background-color 0.2s, border-color 0.2s;
+		}
+		.copy-id-badge:hover {
+			background-color: rgba(2, 132, 199, 0.1);
+			border-color: var(--accent);
+			color: var(--accent);
+		}
+
 		/* Modal Styles */
 		.modal {
 			display: none;
@@ -1471,6 +1490,17 @@ const htmlTemplate = `<!DOCTYPE html>
 				copyFeedback.textContent = 'Failed to copy';
 			}
 		};
+
+		// Enhance subjects list with clickable copyable IDs
+		document.querySelectorAll('.subjects-list li').forEach(li => {
+			const text = li.textContent.trim();
+			const match = text.match(/^\[ID:\s*([a-f0-9]+)\]\s*(.*)$/i);
+			if (match) {
+				const fullId = match[1];
+				const subject = match[2];
+				li.innerHTML = '<span class="copy-id-badge" onclick="navigator.clipboard.writeText(\'' + fullId + '\'); alert(\'Copied ID: ' + fullId + '\')" title="Click to copy full email ID for CLI reader">' + fullId + '</span> <span class="subject-text">' + subject + '</span>';
+			}
+		});
 
 		// Close modal if clicking outside content
 		window.addEventListener('click', (e) => {
