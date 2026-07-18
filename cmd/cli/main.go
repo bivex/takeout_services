@@ -54,10 +54,20 @@ func main() {
 	serve := flag.Bool("serve", false, "Start a local Go web server to host the interactive report and sync checkbox states")
 	port := flag.Int("port", 8000, "Port to run the Go web server on")
 
+	// Email reader flag
+	readEmail := flag.String("read-email", "", "Read the subject and body of an email by its index (e.g., '5') or ID/MsgID from the emails JSONL database")
+
 	flag.Parse()
 
+	if *readEmail != "" {
+		if err := services.PrintEmailDetails(*outputPath, *readEmail); err != nil {
+			log.Fatalf("Error: %v", err)
+		}
+		return
+	}
+
 	if *inputPath == "" && !*serve {
-		fmt.Println("Error: Either --input flag or --serve flag must be specified.")
+		fmt.Println("Error: Either --input, --serve, or --read-email flag must be specified.")
 		flag.Usage()
 		os.Exit(1)
 	}
