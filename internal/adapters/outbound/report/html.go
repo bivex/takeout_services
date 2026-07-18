@@ -1115,8 +1115,8 @@ const htmlTemplate = `<!DOCTYPE html>
 			</div>
 			<div class="modal-body">
 				<div class="form-group">
-					<label for="userNameInput">Your Name:</label>
-					<input type="text" id="userNameInput" class="search-input" value="Your Name" oninput="updateTemplate()">
+					<label for="userNameInput">Your Name / Identifier:</label>
+					<input type="text" id="userNameInput" class="search-input" value="{{.UserEmail}}" oninput="updateTemplate()">
 				</div>
 				<div class="form-group" style="margin-top: 1rem;">
 					<label for="userEmailInput">Your Email Address:</label>
@@ -1428,18 +1428,18 @@ const htmlTemplate = `<!DOCTYPE html>
 		};
 
 		window.updateTemplate = function() {
-			const name = userNameInput.value || '[Your Name]';
+			const name = userNameInput.value || '[Your Identifier]';
 			const email = userEmailInput.value || '[Your Email]';
 			
 			const body = 'Dear Privacy / Support Team at ' + activeServiceName + ',\n\n' +
-				'I am writing to request the immediate deletion of my account and all associated personal data under Article 17 of the General Data Protection Regulation (GDPR) / CCPA.\n\n' +
+				'I am writing as a client / user of your service to request the immediate deletion of my account and all associated personal data under Article 17 of the General Data Protection Regulation (GDPR) / CCPA.\n\n' +
 				'Account Details:\n' +
-				'- Name: ' + name + '\n' +
-				'- Email: ' + email + '\n' +
+				'- Identifier / Name: ' + name + '\n' +
+				'- Email Address: ' + email + '\n' +
 				'- Target Domain: ' + activeServiceDomain + '\n\n' +
 				'Please remove all my records, marketing preferences, and transaction histories from your systems. Additionally, please confirm via email once the erasure process has been completed.\n\n' +
 				'Sincerely,\n' +
-				name;
+				'Client / User (' + name + ')';
 
 			emailBodyText.value = body;
 			
