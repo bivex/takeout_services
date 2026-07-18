@@ -67,7 +67,7 @@ const htmlTemplate = `<!DOCTYPE html>
 	<title>Digital Footprint Analyzer</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 	<style>
 		:root {
 			--bg-dark: #F8FAFC;
@@ -194,12 +194,14 @@ const htmlTemplate = `<!DOCTYPE html>
 		}
 
 		body {
-			font-family: 'Outfit', sans-serif;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 			background-color: var(--bg-dark);
 			color: var(--text-main);
 			min-height: 100vh;
 			padding: 2.5rem 1.5rem;
-			line-height: 1.5;
+			line-height: 1.6;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
 		}
 
 		.container {
@@ -212,14 +214,19 @@ const htmlTemplate = `<!DOCTYPE html>
 			text-align: center;
 		}
 
+		h1, h2, h3, .stat-value, .filter-btn, .confidence-badge, .badge, .logo-text, .toggle-subjects, .delete-action {
+			font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+		}
+
 		h1 {
-			font-size: 2.5rem;
-			font-weight: 700;
+			font-size: 2.75rem;
+			font-weight: 800;
 			background: linear-gradient(135deg, #0F172A, #0284C7, #64748B);
 			-webkit-background-clip: text;
 			-webkit-text-fill-color: transparent;
 			margin-bottom: 0.5rem;
-			letter-spacing: -0.025em;
+			letter-spacing: -0.04em;
+			line-height: 1.15;
 		}
 
 		p.subtitle {
@@ -253,17 +260,20 @@ const htmlTemplate = `<!DOCTYPE html>
 		}
 
 		.stat-info h2 {
-			font-size: 0.9rem;
+			font-size: 0.75rem;
+			font-weight: 700;
 			color: var(--text-muted);
 			text-transform: uppercase;
-			letter-spacing: 0.05em;
-			margin-bottom: 0.25rem;
+			letter-spacing: 0.08em;
+			margin-bottom: 0.35rem;
 		}
 
 		.stat-value {
-			font-size: 2.2rem;
-			font-weight: 700;
+			font-size: 2.25rem;
+			font-weight: 800;
 			color: var(--text-main);
+			letter-spacing: -0.04em;
+			line-height: 1.1;
 		}
 
 		.stat-icon {
@@ -460,23 +470,26 @@ const htmlTemplate = `<!DOCTYPE html>
 		}
 
 		.service-identity h3 {
-			font-size: 1.3rem;
-			font-weight: 600;
+			font-size: 1.25rem;
+			font-weight: 700;
 			color: var(--text-main);
-			margin-bottom: 0.1rem;
+			margin-bottom: 0.15rem;
+			letter-spacing: -0.02em;
 		}
 
 		.service-domain {
 			font-size: 0.85rem;
+			font-weight: 500;
 			color: var(--text-muted);
 		}
 
 		.confidence-badge {
 			padding: 0.25rem 0.6rem;
 			border-radius: 0.5rem;
-			font-size: 0.75rem;
-			font-weight: 600;
+			font-size: 0.7rem;
+			font-weight: 700;
 			text-transform: uppercase;
+			letter-spacing: 0.04em;
 		}
 
 		.conf-high { background-color: var(--conf-high-bg); color: var(--conf-high-color); border: 1px solid var(--conf-high-border); }
