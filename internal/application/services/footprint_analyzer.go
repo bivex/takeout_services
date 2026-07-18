@@ -58,7 +58,7 @@ func (a *FootprintAnalyzer) AnalyzeFootprint(ctx context.Context, mboxReader io.
 
 	// 2. Output HTML report if requested
 	if htmlReportPath != "" {
-		if err := report.GenerateHTMLReport(detected, htmlReportPath); err != nil {
+		if err := report.GenerateHTMLReport(detected, emails, htmlReportPath); err != nil {
 			return 0, err
 		}
 	}

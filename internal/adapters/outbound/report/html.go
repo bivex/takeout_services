@@ -4,18 +4,70 @@ import (
 	"html/template"
 	"os"
 	"sort"
+	"strings"
 
 	"takeout_services/internal/domain/model"
 )
 
+// SuspiciousAlert represents a blocked, spam, or security alert notification.
+type SuspiciousAlert struct {
+	From    string
+	Subject string
+	Date    string
+	Type    string
+}
+
 // GenerateHTMLReport outputs a visual dashboard report to targetPath.
-func GenerateHTMLReport(services []*model.DetectedService, targetPath string) error {
+func GenerateHTMLReport(services []*model.DetectedService, emails []*model.Email, targetPath string) error {
 	// Sort by confidence (descending) then by name
 	sort.Slice(services, func(i, j int) bool {
 		if services[i].Confidence == services[j].Confidence {
 			return services[i].Name < services[j].Name
 		}
 		return services[i].Confidence > services[j].Confidence
+	})
+
+	// Process suspicious and blocked emails
+	var suspicious []SuspiciousAlert
+	for _, email := range emails {
+		labels := email.Headers["X-Gmail-Labels"]
+		isSpam := strings.Contains(labels, "Spam") || strings.Contains(labels, "Спам")
+		isSpamFlag := email.Headers["X-Spam-Flag"] == "YES" || strings.ToLower(email.Headers["X-Spam-Status"]) == "yes"
+		isTrash := strings.Contains(labels, "Trash") || strings.Contains(labels, "Корзина")
+
+		isSecurity := false
+		subLower := strings.ToLower(email.Subject)
+		if strings.Contains(subLower, "suspicious") ||
+			strings.Contains(subLower, "blocked") ||
+			strings.Contains(subLower, "security alert") ||
+			strings.Contains(subLower, "подозрител") ||
+			strings.Contains(subLower, "заблокиров") ||
+			strings.Contains(subLower, "alert") {
+			isSecurity = true
+		}
+
+		alertType := ""
+		if isSpam || isSpamFlag {
+			alertType = "Spam"
+		} else if isTrash {
+			alertType = "Trash"
+		} else if isSecurity {
+			alertType = "Security Alert"
+		}
+
+		if alertType != "" {
+			suspicious = append(suspicious, SuspiciousAlert{
+				From:    email.From,
+				Subject: email.Subject,
+				Date:    email.Date.Format("2006-01-02 15:04"),
+				Type:    alertType,
+			})
+		}
+	}
+
+	// Sort alerts by Date (descending)
+	sort.Slice(suspicious, func(i, j int) bool {
+		return suspicious[i].Date > suspicious[j].Date
 	})
 
 	t, err := template.New("report").Parse(htmlTemplate)
@@ -48,11 +100,13 @@ func GenerateHTMLReport(services []*model.DetectedService, targetPath string) er
 	}
 
 	data := struct {
-		Services []*model.DetectedService
-		Stats    interface{}
+		Services   []*model.DetectedService
+		Suspicious []SuspiciousAlert
+		Stats      interface{}
 	}{
-		Services: services,
-		Stats:    stats,
+		Services:   services,
+		Suspicious: suspicious,
+		Stats:      stats,
 	}
 
 	return t.Execute(f, data)
@@ -517,6 +571,34 @@ const htmlTemplate = `<!DOCTYPE html>
 		.badge.unclassified { background-color: var(--unclassified-bg); color: var(--text-muted); border: 1px solid var(--unclassified-border); }
 		.badge.count { background-color: var(--count-bg); color: var(--text-muted); border: 1px solid var(--count-border); }
 
+		/* Suspicious Alerts Badges */
+		.badge-alert-type.badge-spam {
+			background-color: rgba(220, 38, 38, 0.08);
+			color: #DC2626;
+			border: 1px solid rgba(220, 38, 38, 0.2);
+		}
+		.badge-alert-type.badge-security {
+			background-color: rgba(245, 158, 11, 0.08);
+			color: #B45309;
+			border: 1px solid rgba(245, 158, 11, 0.25);
+		}
+		.badge-alert-type.badge-trash {
+			background-color: rgba(100, 116, 139, 0.06);
+			color: var(--text-muted);
+			border: 1px solid rgba(100, 116, 139, 0.15);
+		}
+		
+		body.dark-mode .badge-alert-type.badge-spam {
+			background-color: rgba(239, 68, 68, 0.15);
+			color: #ef4444;
+			border: 1px solid rgba(239, 68, 68, 0.3);
+		}
+		body.dark-mode .badge-alert-type.badge-security {
+			background-color: rgba(200, 166, 121, 0.15);
+			color: #C8A679;
+			border: 1px solid rgba(200, 166, 121, 0.3);
+		}
+
 		/* Expandable Verification Info */
 		.verify-section {
 			margin-top: auto;
@@ -815,6 +897,44 @@ const htmlTemplate = `<!DOCTYPE html>
 			</article>
 			{{end}}
 		</main>
+
+		<!-- Suspicious & Blocked Activity Log -->
+		<section class="suspicious-section" style="margin-top: 4rem; border-top: 1px solid var(--border); padding-top: 3rem; margin-bottom: 2rem;">
+			<div class="section-header" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+				<h2 style="font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em;">Suspicious & Blocked Activity</h2>
+				<span class="badge" style="background-color: var(--conf-low-bg); color: var(--conf-low-color); border: 1px solid var(--conf-low-border); font-weight: 700; font-size: 0.8rem;">
+					{{len .Suspicious}} alerts
+				</span>
+			</div>
+			<p class="subtitle" style="margin-bottom: 2rem; font-size: 0.95rem;">Emails automatically flagged as spam, trashed, or containing security/block notifications.</p>
+			
+			<div class="alerts-log" style="display: flex; flex-direction: column; gap: 0.75rem;">
+				{{range .Suspicious}}
+				<div class="alert-item" style="background-color: var(--panel-dark); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem;">
+					<div style="flex: 1; min-width: 0;">
+						<div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem;">
+							<span class="badge-alert-type {{if eq .Type "Spam"}}badge-spam{{else if eq .Type "Security Alert"}}badge-security{{else}}badge-trash{{end}}" style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 0.15rem 0.4rem; border-radius: 0.25rem; letter-spacing: 0.05em;">
+								{{.Type}}
+							</span>
+							<strong style="font-size: 0.95rem; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; max-width: 300px;" title="{{.From}}">
+								{{.From}}
+							</strong>
+						</div>
+						<div style="font-size: 0.9rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{.Subject}}">
+							{{.Subject}}
+						</div>
+					</div>
+					<div style="text-align: right; white-space: nowrap; font-size: 0.85rem; color: var(--text-muted);">
+						{{.Date}}
+					</div>
+				</div>
+				{{else}}
+				<div style="text-align: center; color: var(--text-muted); padding: 2rem; border: 1px dashed var(--border); border-radius: 0.75rem; font-size: 0.95rem;">
+					No suspicious or blocked activities detected.
+				</div>
+				{{end}}
+			</div>
+		</section>
 	</div>
 
 	<script>
