@@ -301,6 +301,7 @@ const htmlTemplate = `<!DOCTYPE html>
 		.badge.welcome { background-color: rgba(144, 221, 85, 0.1); color: var(--welcome-color); border: 1px solid rgba(144, 221, 85, 0.2); }
 		.badge.reset { background-color: rgba(200, 166, 121, 0.1); color: var(--reset-color); border: 1px solid rgba(200, 166, 121, 0.2); }
 		.badge.receipt { background-color: rgba(242, 228, 227, 0.1); color: var(--receipt-color); border: 1px solid rgba(242, 228, 227, 0.2); }
+		.badge.unclassified { background-color: rgba(242, 228, 227, 0.05); color: var(--text-muted); border: 1px solid rgba(242, 228, 227, 0.15); }
 		.badge.count { background-color: rgba(200, 166, 121, 0.1); color: var(--text-muted); border: 1px solid rgba(200, 166, 121, 0.2); }
 
 		/* Expandable Verification Info */
@@ -473,6 +474,7 @@ const htmlTemplate = `<!DOCTYPE html>
 					{{if .HasWelcome}}<span class="badge welcome">Welcome Email</span>{{end}}
 					{{if .HasReset}}<span class="badge reset">Password Reset</span>{{end}}
 					{{if .HasReceipt}}<span class="badge receipt">Payment / Invoice</span>{{end}}
+					{{if and (not .HasWelcome) (and (not .HasReset) (not .HasReceipt))}}<span class="badge unclassified">General Interaction</span>{{end}}
 					<span class="badge count">{{.SourcesCount}} Email{{if ne .SourcesCount 1}}s{{end}}</span>
 				</div>
 

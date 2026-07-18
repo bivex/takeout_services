@@ -144,10 +144,9 @@ func (d *KeywordDetector) Detect(ctx context.Context, emails []*model.Email) ([]
 			confidence = 10
 		}
 
-		// We filter out low confidence entries (e.g. confidence = 1 and only 1 email)
-		// to avoid false positives from one-off spam domains.
-		if confidence <= 1 && accum.sourcesCount <= 1 {
-			continue
+		// Ensure confidence is at least 1 if we have any emails from this domain
+		if confidence == 0 && accum.sourcesCount > 0 {
+			confidence = 1
 		}
 
 		results = append(results, model.NewDetectedService(

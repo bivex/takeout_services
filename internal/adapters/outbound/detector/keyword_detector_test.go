@@ -38,18 +38,19 @@ func TestKeywordDetector(t *testing.T) {
 		t.Fatalf("Detection failed: %v", err)
 	}
 
-	// We expect github.com and netflix.com to be detected.
-	// spambot.xyz should be filtered out because it has low confidence (score 1) and only 1 email source.
-	if len(results) != 2 {
-		t.Fatalf("Expected 2 detected services, got %d", len(results))
+	// We expect github.com, netflix.com, and spambot.xyz to be detected (since unclassified services are included).
+	if len(results) != 3 {
+		t.Fatalf("Expected 3 detected services, got %d", len(results))
 	}
 
-	var github, netflix *model.DetectedService
+	var github, netflix, spambot *model.DetectedService
 	for _, res := range results {
 		if res.Domain == "github.com" {
 			github = res
 		} else if res.Domain == "netflix.com" {
 			netflix = res
+		} else if res.Domain == "spambot.xyz" {
+			spambot = res
 		}
 	}
 
@@ -74,5 +75,15 @@ func TestKeywordDetector(t *testing.T) {
 	}
 	if netflix.Name != "Netflix" || netflix.DeleteURL != "https://www.netflix.com/CancelPlan" {
 		t.Errorf("Netflix metadata mapping incorrect: %+v", netflix)
+	}
+
+	if spambot == nil {
+		t.Fatal("Spambot not detected")
+	}
+	if spambot.HasWelcome || spambot.HasReset || spambot.HasReceipt {
+		t.Errorf("Spambot should not have welcome/reset/receipt indicators: %+v", spambot)
+	}
+	if spambot.Confidence != 1 {
+		t.Errorf("Spambot confidence should be 1, got %d", spambot.Confidence)
 	}
 }
