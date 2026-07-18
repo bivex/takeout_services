@@ -284,6 +284,10 @@ const htmlTemplate = `<!DOCTYPE html>
 			gap: 1rem;
 			align-items: center;
 			justify-content: space-between;
+			position: sticky;
+			top: 1rem;
+			z-index: 100;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 		}
 
 		.search-wrapper {
@@ -339,6 +343,96 @@ const htmlTemplate = `<!DOCTYPE html>
 			display: grid;
 			grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
 			gap: 1.5rem;
+		}
+
+		/* List View Layout Overrides */
+		.services-grid.list-view {
+			display: flex;
+			flex-direction: column;
+			gap: 0.75rem;
+		}
+
+		.services-grid.list-view .service-card {
+			display: grid;
+			grid-template-columns: 2fr 1fr 1.2fr 1.5fr;
+			align-items: center;
+			padding: 0.75rem 1.5rem;
+			gap: 1.5rem;
+		}
+
+		.services-grid.list-view .service-card:hover {
+			transform: none;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05), 0 0 10px var(--accent-glow);
+		}
+
+		@media (max-width: 900px) {
+			.services-grid.list-view .service-card {
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+				padding: 1.5rem;
+			}
+		}
+
+		.services-grid.list-view .card-header {
+			margin-bottom: 0;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			grid-column: 1 / 3;
+			gap: 1rem;
+			width: 100%;
+		}
+
+		.services-grid.list-view .verify-section {
+			margin-top: 0;
+			border-top: none;
+			padding-top: 0;
+			grid-column: 3;
+		}
+
+		.services-grid.list-view .delete-action {
+			margin-top: 0;
+			grid-column: 4;
+			width: 100%;
+		}
+
+		/* Back to Top Button */
+		.back-to-top {
+			position: fixed;
+			bottom: 2rem;
+			right: 2rem;
+			background-color: var(--accent);
+			color: #ffffff;
+			border: none;
+			border-radius: 50%;
+			width: 3.5rem;
+			height: 3.5rem;
+			font-size: 1.5rem;
+			font-weight: bold;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+			z-index: 1000;
+			opacity: 0;
+			visibility: hidden;
+			transition: all 0.3s ease;
+		}
+
+		.back-to-top.show {
+			opacity: 1;
+			visibility: visible;
+		}
+
+		.back-to-top:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25), 0 0 10px var(--accent-glow);
+		}
+		
+		body.dark-mode .back-to-top {
+			color: #1B0C0C;
 		}
 
 		.service-card {
@@ -638,11 +732,21 @@ const htmlTemplate = `<!DOCTYPE html>
 			<div class="search-wrapper">
 				<input type="text" id="searchInput" class="search-input" placeholder="Search service name or domain...">
 			</div>
-			<div class="filters">
-				<button class="filter-btn active" data-filter="all">All</button>
-				<button class="filter-btn" data-filter="high">High Confidence (7+)</button>
-				<button class="filter-btn" data-filter="subscriptions">Subscriptions</button>
-				<button class="filter-btn" data-filter="low">Low Confidence (&lt;4)</button>
+			<div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;">
+				<div class="filters">
+					<button class="filter-btn active" data-filter="all">All</button>
+					<button class="filter-btn" data-filter="high">High Confidence (7+)</button>
+					<button class="filter-btn" data-filter="subscriptions">Subscriptions</button>
+					<button class="filter-btn" data-filter="low">Low Confidence (&lt;4)</button>
+				</div>
+				<div class="view-toggles" style="display: flex; gap: 0.25rem; border-left: 1px solid var(--border); padding-left: 1rem;">
+					<button id="viewGrid" class="filter-btn active" title="Grid View" style="display: flex; align-items: center; gap: 0.25rem;">
+						<span>⊞</span> Grid
+					</button>
+					<button id="viewList" class="filter-btn" title="List View" style="display: flex; align-items: center; gap: 0.25rem;">
+						<span>☰</span> List
+					</button>
+				</div>
 			</div>
 		</section>
 
@@ -832,7 +936,66 @@ const htmlTemplate = `<!DOCTYPE html>
 
 		// Initial load of stats
 		updateDeletedStats();
+
+		// View Toggles Logic
+		const viewGridBtn = document.getElementById('viewGrid');
+		const viewListBtn = document.getElementById('viewList');
+		const servicesGrid = document.getElementById('servicesGrid');
+
+		// Load saved view preference
+		let savedView = 'grid';
+		try {
+			savedView = localStorage.getItem('view-preference') || 'grid';
+		} catch (e) {
+			// ignore
+		}
+
+		if (savedView === 'list') {
+			servicesGrid.classList.add('list-view');
+			viewGridBtn.classList.remove('active');
+			viewListBtn.classList.add('active');
+		}
+
+		viewGridBtn.addEventListener('click', () => {
+			servicesGrid.classList.remove('list-view');
+			viewGridBtn.classList.add('active');
+			viewListBtn.classList.remove('active');
+			try {
+				localStorage.setItem('view-preference', 'grid');
+			} catch (e) {
+				// ignore
+			}
+		});
+
+		viewListBtn.addEventListener('click', () => {
+			servicesGrid.classList.add('list-view');
+			viewGridBtn.classList.remove('active');
+			viewListBtn.classList.add('active');
+			try {
+				localStorage.setItem('view-preference', 'list');
+			} catch (e) {
+				// ignore
+			}
+		});
+
+		// Back to Top Logic
+		const backToTopBtn = document.getElementById('backToTop');
+		window.addEventListener('scroll', () => {
+			if (window.scrollY > 300) {
+				backToTopBtn.classList.add('show');
+			} else {
+				backToTopBtn.classList.remove('show');
+			}
+		});
+
+		backToTopBtn.addEventListener('click', () => {
+			window.scrollTo({
+				top: 0,
+				behavior: 'smooth'
+			});
+		});
 	</script>
+	<button id="backToTop" class="back-to-top" title="Back to top">↑</button>
 </body>
 </html>
 `
